@@ -62,9 +62,11 @@ const ListDnd: FC = () => {
     }
 
     // Создание нового порядка элементов
+
     const newItems = Array.from(items);
     const [movedItem] = newItems.splice(source.index, 1);
-    newItems.splice(destination.index, 1, movedItem);
+    newItems.splice(destination.index, 0, movedItem);
+    newItems[destination.index].stat = items[destination.index].stat;
 
     // Обновление состояния с новым порядком элементов
     setItems(newItems);
