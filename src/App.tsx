@@ -1,8 +1,6 @@
-
 import ListDnd from './ListDnd';
 
 function App() {
-  
   return (
     <>
       <ListDnd />

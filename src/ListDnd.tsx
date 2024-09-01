@@ -2,7 +2,8 @@ import List from '@mui/material/List/List';
 import { FC, useState } from 'react';
 import ListItemDnd from './ListItemDnd';
 import { Item } from './store';
-import { DragDropContext, Droppable, DropResult } from 'react-beautiful-dnd';
+import { DndProvider } from 'react-dnd/dist/core/DndProvider';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 
 const ListDnd: FC = () => {
   const [items, setItems] = useState([
@@ -42,53 +43,29 @@ const ListDnd: FC = () => {
       stat: 'gray',
     },
   ]);
-  const dpId: string = 'droppable';
 
-  const onDragEnd = (result: DropResult) => {
-    const { source, destination } = result;
-
-    // Если элемент был перетащен за пределы допустимой зоны, destination будет null
-    //if (!destination) {
-    // return;
-
-    // Если элемент был перетащен за пределы допустимой зоны, destination будет null
-    if (!destination) {
-      return;
-    }
-
-    // Если элемент был перетащен в ту же позицию
-    if (source.index === destination.index) {
-      return;
-    }
-
-    // Создание нового порядка элементов
-
+  const moveItem = (dragIndex: number, hoverIndex: number) => {
     const newItems = Array.from(items);
-    const [movedItem] = newItems.splice(source.index, 1);
-    newItems.splice(destination.index, 0, movedItem);
-    newItems[destination.index].stat = items[destination.index].stat;
+    const [draggedItem] = newItems.splice(dragIndex, 1);
+    newItems.splice(hoverIndex, 0, draggedItem);
+    newItems[hoverIndex].stat = items[hoverIndex].stat;
 
-    // Обновление состояния с новым порядком элементов
     setItems(newItems);
   };
 
   return (
-    <DragDropContext onDragEnd={onDragEnd}>
-      <Droppable key={dpId} droppableId={dpId}>
-        {(provided) => (
-          <List
-            {...provided.droppableProps}
-            ref={provided.innerRef}
-            sx={{ alignContent: 'center', width: '50%' }}
-          >
-            {items.map((item: Item, index: number) => (
-              <ListItemDnd key={item.id} {...item} index={index} />
-            ))}
-            {provided.placeholder}
-          </List>
-        )}
-      </Droppable>
-    </DragDropContext>
+    <DndProvider backend={HTML5Backend}>
+      <List>
+        {items.map((item: Item, index: number) => (
+          <ListItemDnd
+            key={item.id}
+            {...item}
+            index={index}
+            moveItem={moveItem}
+          />
+        ))}
+      </List>
+    </DndProvider>
   );
 };
 
