@@ -1,8 +1,8 @@
 import List from '@mui/material/List/List';
-import { FC, useState } from 'react';
+import { FC, useEffect, useRef, useState } from 'react';
 import ListItemDnd from './ListItemDnd';
 import { Item } from './store';
-import { DragDropContext, Droppable, DropResult } from 'react-beautiful-dnd';
+import { DraggableData, DraggableEvent } from 'react-draggable';
 
 const ListDnd: FC = () => {
   const [items, setItems] = useState([
@@ -42,53 +42,39 @@ const ListDnd: FC = () => {
       stat: 'gray',
     },
   ]);
-  const dpId: string = 'droppable';
+  const listItemRef = useRef<HTMLLIElement>(null);
+  const [height, setHeight] = useState<number | null>(null);
 
-  const onDragEnd = (result: DropResult) => {
-    const { source, destination } = result;
-
-    // Если элемент был перетащен за пределы допустимой зоны, destination будет null
-    //if (!destination) {
-    // return;
-
-    // Если элемент был перетащен за пределы допустимой зоны, destination будет null
-    if (!destination) {
-      return;
+  useEffect(() => {
+    if (listItemRef.current) {
+      // Получаем высоту элемента в пикселях
+      const height = listItemRef.current.getBoundingClientRect().height;
+      setHeight(height);
     }
-
-    // Если элемент был перетащен в ту же позицию
-    if (source.index === destination.index) {
-      return;
-    }
-
-    // Создание нового порядка элементов
-
-    const newItems = Array.from(items);
-    const [movedItem] = newItems.splice(source.index, 1);
-    newItems.splice(destination.index, 0, movedItem);
-    newItems[destination.index].stat = items[destination.index].stat;
-
-    // Обновление состояния с новым порядком элементов
+  }, []);
+  const handleStop = (
+    e: DraggableEvent,
+    data: DraggableData,
+    index: number,
+  ) => {
+    const newItems = [...items];
+    const item = newItems.splice(index, 1)[0];
+    newItems.splice(Math.round(data.y / Number(height)), 0, item); // Assuming each item has a height of 50px
     setItems(newItems);
   };
 
   return (
-    <DragDropContext onDragEnd={onDragEnd}>
-      <Droppable key={dpId} droppableId={dpId}>
-        {(provided) => (
-          <List
-            {...provided.droppableProps}
-            ref={provided.innerRef}
-            sx={{ alignContent: 'center', width: '50%' }}
-          >
-            {items.map((item: Item, index: number) => (
-              <ListItemDnd key={item.id} {...item} index={index} />
-            ))}
-            {provided.placeholder}
-          </List>
-        )}
-      </Droppable>
-    </DragDropContext>
+    <List>
+      {items.map((item: Item, index: number) => (
+        <ListItemDnd
+          ref={listItemRef}
+          key={item.id}
+          {...item}
+          index={index}
+          handleStop={handleStop}
+        />
+      ))}
+    </List>
   );
 };
 

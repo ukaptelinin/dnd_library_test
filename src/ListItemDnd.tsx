@@ -2,15 +2,20 @@ import ListItem from '@mui/material/ListItem/ListItem';
 import Typography from '@mui/material/Typography/Typography';
 import { FC } from 'react';
 import { ItemProps } from './store';
-import { Draggable } from 'react-beautiful-dnd';
+import Draggable from 'react-draggable';
 
-const ListItemDnd: FC<ItemProps> = ({ id, text, stat, index }) => (
-  <Draggable key={id} draggableId={id} index={index}>
-    {(provided) => (
+const ListItemDnd: FC<ItemProps> = ({
+  ref,
+  id,
+  text,
+  stat,
+  index,
+  handleStop,
+}) => {
+  return (
+    <Draggable key={id} onStop={(e, data) => handleStop(e, data, index)}>
       <ListItem
-        ref={provided.innerRef}
-        {...provided.draggableProps}
-        {...provided.dragHandleProps}
+        ref={ref}
         sx={{
           padding: '0.5rem 1rem',
           marginBottom: '.5rem',
@@ -20,8 +25,8 @@ const ListItemDnd: FC<ItemProps> = ({ id, text, stat, index }) => (
       >
         <Typography>{text}</Typography>
       </ListItem>
-    )}
-  </Draggable>
-);
+    </Draggable>
+  );
+};
 
 export default ListItemDnd;
