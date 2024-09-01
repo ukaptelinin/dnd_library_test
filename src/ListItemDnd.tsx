@@ -24,7 +24,6 @@ const ListItemDnd: FC<ItemProps> = ({ id, text, stat, index, moveItem }) => {
       if (!ref.current) {
         return;
       }
-      console.log(stat);
       const dragIndex = item.index;
       const hoverIndex = index;
 
