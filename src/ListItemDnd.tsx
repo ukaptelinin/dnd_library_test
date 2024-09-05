@@ -1,20 +1,23 @@
 import ListItem from '@mui/material/ListItem/ListItem';
 import Typography from '@mui/material/Typography/Typography';
 import { FC, useRef } from 'react';
-import { DragItem, ItemProps, ItemTypes } from './store';
+import { DragItem, ItemProps } from './store';
 import { useDrop } from 'react-dnd/dist/hooks/useDrop/useDrop';
 import { useDrag } from 'react-dnd/dist/hooks/useDrag/useDrag';
 import type { Identifier, XYCoord } from 'dnd-core';
+import Grid from '@mui/material/Grid/Grid';
+import { Button } from '@mui/material';
 
 const ListItemDnd: FC<ItemProps> = ({ id, text, stat, index, moveItem }) => {
   const ref = useRef<HTMLDivElement>(null);
+  const dragRef = useRef<HTMLButtonElement>(null);
 
   const [{ handlerId }, drop] = useDrop<
     DragItem,
     void,
     { handlerId: Identifier | null }
   >({
-    accept: ItemTypes.CARD,
+    accept: 'ITEM',
     collect(monitor) {
       return {
         handlerId: monitor.getHandlerId(),
@@ -54,8 +57,8 @@ const ListItemDnd: FC<ItemProps> = ({ id, text, stat, index, moveItem }) => {
     },
   });
 
-  const [{ isDragging }, drag] = useDrag({
-    type: ItemTypes.CARD,
+  const [{ isDragging }, drag, preview] = useDrag({
+    type: 'ITEM',
     item: () => {
       return { id, index };
     },
@@ -63,28 +66,49 @@ const ListItemDnd: FC<ItemProps> = ({ id, text, stat, index, moveItem }) => {
       isDragging: monitor.isDragging(),
     }),
   });
+
+  const handlePointerDown = (event: React.PointerEvent) => {
+    if (dragRef.current) {
+      drag(dragRef.current);
+    }
+  };
+
   const opacity = isDragging ? 0 : 1;
-  drag(drop(ref));
+  preview(drop(ref));
 
   return (
-    <div
+    <Grid
+      container
+      direction="row"
       ref={ref}
-      style={{
-        width: '50%',
+      sx={{
+        width: '70%',
         color: stat,
         border: '2px solid gray',
         padding: '0.5rem 1rem',
         marginBottom: '.5rem',
         backgroundColor: 'white',
-        cursor: 'move',
+
         opacity,
       }}
       data-handler-id={handlerId}
     >
       <ListItem>
-        <Typography>{text}</Typography>
+        <Grid item xs={1}>
+          <Button
+            variant="contained"
+            sx={{ cursor: 'move' }}
+            ref={dragRef}
+            onPointerDown={handlePointerDown}
+          >
+            Drag
+          </Button>
+        </Grid>
+        <Grid item xs={11}>
+          <Typography>{text}</Typography>
+        </Grid>
       </ListItem>
-    </div>
+    </Grid>
   );
 };
 
